@@ -61,7 +61,7 @@ class text_preprocessing():
                 nan_occ = dframe[col].isna().mean()
                 if nan_occ >= 0.05:
                     dframe[col] = dframe[col].fillna('',axis=0)
-                else:
+                elif nan_occ < 0.05:
                     dframe = dframe.dropna(subset=[col],axis=0)
             return dframe
         except Exception as e:
