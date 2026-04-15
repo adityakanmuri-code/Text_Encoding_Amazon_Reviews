@@ -90,7 +90,7 @@ class text_preprocessing():
             if rating >= 3 then 1 which means positive
             if rating < 3 then 0 which means negative
             ''' 
-            dframe['overall'] = dframe['overall'].apply(lambda x : 1 if x > 3 else 0)
+            dframe['overall'] = dframe['overall'].apply(lambda x : 1 if x >= 3 else 0)
             y = dframe['overall']
             return X,y
         except Exception as e:
