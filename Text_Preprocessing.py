@@ -11,6 +11,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import sys
 from tqdm import tqdm
+import emoji
 
 
 #Step 1 : Data Ingestion
@@ -45,13 +46,33 @@ class text_preprocessing():
             
             #Removing special characters from the review text
             df['reviewText'] = df['reviewText'].apply(lambda x : re.sub('[^a-zA-Z0-9]',' ',x))
+
+            #Removing extra white spaces
+            df['reviewText'] = df['reviewText'].apply(lambda x : re.sub(r"\s+",' ',x).strip())
+
+            #Handling negations:
+            df['reviewText'] = df['reviewText'].apply(lambda x : re.sub(r"\bnot\s+(\w+)",r"not_\1",x))
+
+            #Handling Very Short Words:
+            df['reviewText'] = df['reviewText'].apply(
+                lambda x : ' '.join([word for word in x.split() if len(word) > 2])
+            )
+            #Handling Emoji
+            df['reviewText'] = df['reviewText'].apply(lambda x : emoji.demojize(x))
+
+            #Handling urls and html
+            df['reviewText'] = df['reviewText'].apply(lambda x : re.sub(r"https\S+|www\S+",'',x))
+            df['reviewText'] = df['reviewText'].apply(lambda x : re.sub(r"<.*?>",'',x))
             return df
         except Exception as e:
             raise Exception(e)
     
     def __remove_unwanted_cols(self,dframe:pd.DataFrame = None,unwanted_cols:list = None):
         try:
-            return dframe.drop(columns=unwanted_cols)
+            if unwanted_cols is None:
+                return dframe
+            else :
+                return dframe.drop(columns=unwanted_cols)
         except Exception as e:
             raise Exception(e)
         

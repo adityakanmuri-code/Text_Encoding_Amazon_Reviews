@@ -29,7 +29,7 @@ class model_trainer():
 
         X_train_resampled, y_train_resampled = self.__reduce_imbalances(X_train_bow, y_train)
 
-        return X_train_resampled, X_test_bow, y_train_resampled, y_test, bow
+        return X_train_resampled, X_test_bow,y_train_resampled,y_test, bow
 
     def __encode_text_TFIDF(self, X, y):
         X_train,X_val,X_test,y_train,y_val,y_test = self.__split_data(X, y)
@@ -43,14 +43,14 @@ class model_trainer():
 
         return X_train_resampled, X_test_tfidf, y_train_resampled, y_test, tfidf
 
-    def calculate_cv_score(model,X,y):
+    def __calculate_cv_score(self,model,X,y):
         return cross_val_score(model,X,y,cv=5,scoring='f1_weighted').mean()
 
     def train_model(self, X, y, encode_tech: str = 'TFIDF'):
         if encode_tech == 'BOW':
-            X_train,X_val,X_test,y_train,y_val,y_test,vectorizer = self.__encode_text_BOW(X, y)
+            X_train,X_test,y_train,y_test,vectorizer = self.__encode_text_BOW(X, y)
         elif encode_tech == 'TFIDF':
-            X_train,X_val,X_test,y_train,y_val,y_test,vectorizer = self.__encode_text_TFIDF(X, y)
+            X_train,X_test,y_train,y_test,vectorizer = self.__encode_text_TFIDF(X, y)
         else:
             raise ValueError("Invalid encoding type. Use 'BOW' or 'TFIDF'")
 
@@ -64,22 +64,23 @@ class model_trainer():
 
         for name,model in models.items():
             model.fit(X_train,y_train)
-            scores = self.model_eval(model,X_test,y_test)
-            cv_score = self.calculate_cv_score(model,X_test,y_test)
+            scores = self.__model_eval(model,X_test,y_test)
+            cv_score = self.__calculate_cv_score(model,X_test,y_test)
             #Fetching the best model 
             if cv_score >= best_score:
                 if scores['F1_Score'] > best_score:
                     best_model = model
                     best_model_name = model.__class__.__name__
-                    best_score = scores['F1_score']
+                    best_score = scores['F1_Score']
+        return best_model,best_model_name,best_score,vectorizer
     
-    def model_eval(self, model, X_test, y_test):
+    def __model_eval(self, model, X_test, y_test):
         y_pred = model.predict(X_test)
 
         return {
             'Model_Name': model.__class__.__name__,
             'Accuracy': accuracy_score(y_test, y_pred),
-            'F1 Score': f1_score(y_test, y_pred,average='weighted'),
+            'F1_Score': f1_score(y_test, y_pred,average='weighted'),
             'Confusion Matrix' : confusion_matrix(y_test,y_pred),
             'Classification Report' : classification_report(y_test,y_pred)
         }

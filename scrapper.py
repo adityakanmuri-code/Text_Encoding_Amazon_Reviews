@@ -116,7 +116,7 @@ def save_to_csv(reviews, output_file):
     """Save reviews to CSV"""
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['Star Rating', 'Review Description'])
+        writer.writerow(['overall', 'reviewText'])
         writer.writerows(reviews)
 
     print(f"Saved {len(reviews)} reviews to {output_file}")
